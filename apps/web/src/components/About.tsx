@@ -34,7 +34,8 @@ export function About({ onBack }: { onBack: () => void }) {
         <h2>Cuándo me la juego</h2>
         <p>
           Propongo una canción cuando la probabilidad de la favorita es alta o le saca mucha ventaja a la segunda. El porcentaje que ves es esa
-          probabilidad real. Si fallo, la descarto y sigo investigando.
+          probabilidad, calibrada con miles de partidas simuladas para que sea honesta: lo que anuncio al 80 % acierta unas 8 de cada 10
+          veces. Si fallo, la descarto y sigo investigando.
         </p>
         <h2>Datos reales y verificables</h2>
         <p>

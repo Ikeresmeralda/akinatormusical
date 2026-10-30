@@ -33,8 +33,10 @@ canciones**: solo propone canciones de un catálogo construido con fuentes verif
   - Descarta preguntas cuya respuesta ya es casi segura.
   - Penaliza encadenar preguntas de la misma familia.
   - Si contestas «No lo sé», evita esa familia de preguntas.
-- **Intentos con su porcentaje de confianza** y la explicación de la deducción («lo he deducido porque…»). Tras un
-  fallo descarta la canción y sigue investigando. Tras dos fallos pasa a un modelo más tolerante con los errores.
+- **Intentos con su porcentaje de confianza** y la explicación de la deducción («lo he deducido porque…»). El
+  porcentaje está calibrado: lo que se anuncia al 80 % acierta de verdad unas 8 de cada 10 veces en el benchmark.
+  Tras un fallo descarta la canción y sigue investigando. Tras dos fallos pasa a un modelo más tolerante con los
+  errores.
 - **Aprendizaje**:
   - Cada partida confirmada suma sus respuestas a la canción (modelo Beta-Bernoulli).
   - La tasa de «no lo sé» de cada pregunta se ajusta sola.

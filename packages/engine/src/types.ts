@@ -97,7 +97,7 @@ export interface Progress {
   guesses: number;
   /** Número efectivo de canciones aún posibles (exp de la entropía del posterior). */
   effectiveCandidates: number;
-  /** Probabilidad posterior de la canción más probable. */
+  /** Confianza (calibrada) en la canción más probable. */
   topConfidence: number;
   poolSize: number;
   maxQuestions: number;
