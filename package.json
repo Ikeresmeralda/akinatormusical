@@ -1,0 +1,31 @@
+{
+  "name": "akinatormusical",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Detective musical: adivina la canción en la que piensas mediante inferencia bayesiana y ganancia de información.",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "npm run build -w @am/web",
+    "start": "tsx apps/server/src/index.ts",
+    "data:download": "tsx packages/pipeline/src/download.ts",
+    "data:build": "tsx packages/pipeline/src/build.ts",
+    "data:wikidata": "tsx packages/pipeline/src/sources/wikidata.ts",
+    "bench": "tsx packages/engine/bench/run.ts",
+    "test": "vitest run",
+    "typecheck": "tsc -p packages/engine && tsc -p packages/pipeline && tsc -p apps/server && tsc -p apps/web"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3",
+    "vitest": "^5.0.5"
+  }
+}

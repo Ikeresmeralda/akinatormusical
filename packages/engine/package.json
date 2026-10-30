@@ -1,0 +1,10 @@
+{
+  "name": "@am/engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Motor de inferencia bayesiana y selección de preguntas por ganancia de información.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "@am/pipeline",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Descarga, normaliza y fusiona fuentes musicales verificables en el catálogo del juego.",
+  "type": "module",
+  "dependencies": {
+    "@am/engine": "*",
+    "csv-parse": "^7.0.3"
+  }
+}
