@@ -12,9 +12,13 @@ const LABEL_RULES: Rule[] = [
   [/reggaeton|reguet|trap latino|latin trap|trap boricua|urbano latino|dembow|perreo/, ['latin', 'reggaeton']],
   [/\btropical\b(?! house)|bachata|salsa|merengue|cumbia|vallenato|champeta|mambo|boogaloo|cuban rumba|timba/, ['latin', 'tropical']],
   [/regional mexican|\bbanda\b|norteno|grupera|ranchera|mariachi|corrido|duranguense|tejano|musica potosina/, ['latin', 'regmex']],
-  [/latin pop|latin arena pop|latin viral pop|pop latino|spanish pop|mexican pop|colombian pop|puerto rican pop|panamanian pop|ecuadorian pop|argentine pop|chilean pop|venezuelan pop|cancion melodica|bolero|romantico|latin ballad|balada/, ['latin', 'latinpop', 'pop']],
+  [/latin pop|latin arena pop|latin viral pop|pop latino|mexican pop|colombian pop|puerto rican pop|panamanian pop|ecuadorian pop|argentine pop|chilean pop|venezuelan pop|cancion melodica|bolero|romantico|latin ballad|balada/, ['latin', 'latinpop', 'pop']],
+  // En España, el pop y el rock españoles no se consideran «música latina»
+  [/spanish pop|movida|spanish new wave|spanish invasion/, ['pop']],
+  [/spanish rock|rock espa/, ['rock']],
+  [/flamenco|copla|sevillanas|rumba catalana/, ['folk']],
   [/latin hip hop|rap latina|latin rap|mexican hip hop|chicano rap/, ['latin', 'hiphop']],
-  [/rock en espanol|latin rock|rock nacional|argentine rock|mexican rock|spanish new wave|spanish invasion/, ['latin', 'rock']],
+  [/rock en espanol|latin rock|rock nacional|argentine rock|mexican rock/, ['latin', 'rock']],
   [/^latin$|\blatin\b|latino/, ['latin']],
   [/bossa nova|samba|sertanejo|brazilian|\bmpb\b|forro|pagode/, ['latin']],
   // --- Pop asiático ---
@@ -77,7 +81,7 @@ const COUNTRY_RULES: Array<[RegExp, string, number]> = [
   [/swiss/, 'CH', 1],
   [/french|chanson|ye ye|rap conscient/, 'FR', 1],
   [/italian|italo/, 'IT', 1],
-  [/spanish pop|spanish new wave|spanish invasion/, 'ES', 1],
+  [/spanish|movida|flamenco|copla|sevillanas|rumba catalana/, 'ES', 1],
   [/puerto rican|boricua/, 'PR', 1],
   [/colombian|reggaeton colombiano|vallenato|champeta/, 'CO', 1],
   [/mexican|regional mexican|\bbanda\b|norteno|grupera|ranchera|mariachi|duranguense|corrido|musica potosina/, 'MX', 1],
@@ -118,7 +122,7 @@ const COUNTRY_RULES: Array<[RegExp, string, number]> = [
 ];
 
 const LANGUAGE_RULES: Array<[RegExp, 'es' | 'other']> = [
-  [/reggaeton|reguet|trap latino|latin|bachata|salsa|merengue|cumbia|vallenato|champeta|regional mexican|\bbanda\b|norteno|grupera|ranchera|mariachi|corrido|duranguense|spanish|mexican pop|colombian pop|puerto rican pop|bolero|romantico|rock en espanol|rock nacional|cancion melodica|dembow|trova|nueva cancion|boricua/, 'es'],
+  [/reggaeton|reguet|trap latino|latin|bachata|salsa|merengue|cumbia|vallenato|champeta|regional mexican|\bbanda\b|norteno|grupera|ranchera|mariachi|corrido|duranguense|spanish|mexican pop|colombian pop|puerto rican pop|bolero|romantico|rock en espanol|rock nacional|cancion melodica|dembow|trova|nueva cancion|boricua|flamenco|copla|movida|cantautor/, 'es'],
   [/k-pop|korean|k-rap|k-hop|j-pop|japanese|enka|c-pop|mandopop|cantopop|chinese|taiwan|bollywood|filmi|desi|punjabi|french pop|chanson|ye ye|italian pop|classic italian|german pop|schlager|neue deutsche|sertanejo|samba|bossa nova|\bmpb\b|brazilian|turbo folk|sevdah|dansktop|levenslied|thai pop|\bopm\b|russian|rap conscient|french hip hop/, 'other'],
 ];
 

@@ -66,6 +66,8 @@ export interface RawSources {
   n1?: string;
   /** Aparece en las playlists de Spotify del dataset TidyTuesday 2020. */
   pl?: 1;
+  /** Elemento de Wikidata. */
+  wd?: string;
 }
 
 export function parseCatalog(json: string): RawCatalog {

@@ -23,6 +23,7 @@ import {
   type NumberOne,
 } from './readers';
 import { SOURCES } from './sources';
+import { readWikidataDump, type WikidataArtist, type WikidataSong } from './sources/wikidata';
 import { altTitleKeys, displayTitle, normArtist, normTitle, songId, workFromTitle, yearOf } from './text';
 
 // ------------------------------------------------------------------ modelo
@@ -45,6 +46,7 @@ interface SongRec {
   no1?: NumberOne;
   ev?: EurovisionEntry;
   rapGender?: Gender;
+  wd?: WikidataSong;
   fromPlaylists: boolean;
 }
 
@@ -76,6 +78,9 @@ export function buildCatalog(): { catalog: RawCatalog; coverage: Record<string, 
   const eurovision = readEurovision();
   const rollingStone = readRollingStone();
   const rap = readRapRankings();
+  // Opcional: solo si se ha ejecutado `npm run data:wikidata` con acceso a Internet
+  const wikidata = readWikidataDump();
+  if (wikidata) console.log(`Wikidata: ${wikidata.songs.length} canciones, ${wikidata.artists.length} intérpretes (${wikidata.fetchedAt})`);
 
   // 1) Registro de artistas independientes (necesario para dividir créditos con seguridad)
   const registry = new ArtistRegistry();
@@ -86,6 +91,7 @@ export function buildCatalog(): { catalog: RawCatalog; coverage: Record<string, 
   for (const e of eurovision) registry.observeArtist(e.artist);
   for (const a of rollingStone) registry.observeArtist(a.name);
   for (const r of rap) registry.observeCredit(r.credit);
+  for (const a of wikidata?.artists ?? []) registry.observeArtist(a.name);
 
   // 2) Índice de canciones por título normalizado (y por claves alternativas)
   const byTitle = new Map<string, SongRec[]>();
@@ -207,10 +213,20 @@ export function buildCatalog(): { catalog: RawCatalog; coverage: Record<string, 
     if (rec && r.gender) rec.rapGender = r.gender;
   }
 
-  // 9) Agregados por artista
-  const artists = aggregateArtists(all, rollingStone, rap, registry);
+  // 9) Wikidata: enriquece las canciones existentes y añade las que faltan (p. ej. música española)
+  for (const w of wikidata?.songs ?? []) {
+    if (!w.performerNames.length) continue;
+    const credit = w.performerNames.join(' & ');
+    const rec = find(w.title, credit) ?? create(w.title, credit);
+    rec.wd = w;
+    if (w.spotify) rec.spotifyId ??= w.spotify;
+  }
 
-  // 10) Derivar hechos y serializar
+  // 10) Agregados por artista
+  const wdArtists = new Map((wikidata?.artists ?? []).map((a) => [normArtist(a.name), a]));
+  const artists = aggregateArtists(all, rollingStone, rap, registry, wdArtists);
+
+  // 11) Derivar hechos y serializar
   console.log('Derivando hechos…');
   const factIndex = new Map<string, number>();
   const factKeys: string[] = [];
@@ -293,6 +309,7 @@ export function buildCatalog(): { catalog: RawCatalog; coverage: Record<string, 
       spotifyId: songs.filter((s) => s.s.sp).length,
       numberOnes: songs.filter((s) => s.s.n1).length,
       eurovision: songs.filter((s) => s.s.ev).length,
+      wikidata: songs.filter((s) => s.s.wd).length,
     },
     /** % de canciones con al menos un hecho de cada familia (o con el rasgo numérico, si empieza por #). */
     familyCoverage: Object.fromEntries(
@@ -322,7 +339,7 @@ function mergeChart(rec: SongRec, s: { first: string; peak: number; weeks: numbe
  * así que quedarse con el mínimo es seguro.
  */
 function songYear(rec: SongRec): { y: number | null; quality: 0 | 1 } {
-  const curated = [yearOf(rec.chart?.first), yearOf(rec.no1?.date), rec.ev?.year ?? null].filter(
+  const curated = [yearOf(rec.chart?.first), yearOf(rec.no1?.date), rec.ev?.year ?? null, yearOf(rec.wd?.date)].filter(
     (y): y is number => y !== null,
   );
   const album = rec.albumYear && rec.albumYear >= 1940 ? rec.albumYear : null;
@@ -345,12 +362,14 @@ function popularity(rec: SongRec): number {
     const r = rec.ev.finalRank;
     ev = rec.ev.winner ? 0.5 : r !== null && r <= 3 ? 0.36 : r !== null && r <= 10 ? 0.26 : r !== null ? 0.16 : 0.07;
   }
-  const nSources = [rec.chart, rec.fromPlaylists || undefined, rec.no1, rec.ev].filter(Boolean).length;
-  return clamp(Math.max(bb, 0.95 * sp, ev) + 0.04 * (nSources - 1));
+  // Wikidata: nº de Wikipedias con artículo (60+ = éxito mundial); el artículo en español pesa un poco más
+  const wd = rec.wd ? 0.2 + 0.65 * Math.min(1, Math.log1p(rec.wd.sitelinks) / Math.log1p(60)) + (rec.wd.eswiki ? 0.05 : 0) : 0;
+  const nSources = [rec.chart, rec.fromPlaylists || undefined, rec.no1, rec.ev, rec.wd].filter(Boolean).length;
+  return clamp(Math.max(bb, 0.95 * sp, ev, wd) + 0.04 * (nSources - 1));
 }
 
 function workOf(rec: SongRec): { w?: string } {
-  const w = workFromTitle(rec.title) ?? rec.no1?.work ?? null;
+  const w = workFromTitle(rec.title) ?? rec.no1?.work ?? rec.wd?.work?.name ?? null;
   return w ? { w } : {};
 }
 
@@ -364,6 +383,7 @@ function sourcesOf(rec: SongRec): RawSong['s'] {
   }
   if (rec.no1) s.n1 = rec.no1.date;
   if (rec.fromPlaylists) s.pl = 1;
+  if (rec.wd) s.wd = rec.wd.qid;
   return s;
 }
 
@@ -374,6 +394,7 @@ function aggregateArtists(
   rollingStone: ReturnType<typeof readRollingStone>,
   rap: ReturnType<typeof readRapRankings>,
   registry: ArtistRegistry,
+  wdArtists: Map<string, WikidataArtist>,
 ): Map<string, ArtistAgg> {
   const aggs = new Map<string, ArtistAgg>();
   const get = (name: string): ArtistAgg => {
@@ -422,6 +443,15 @@ function aggregateArtists(
   for (const r of rap) {
     const parts = registry.split(r.credit);
     if (parts.length === 1 && r.gender) bump(get(parts[0]).gender, r.gender, 2);
+  }
+  // Wikidata describe al artista directamente (género, tipo, nacionalidad): evidencia fuerte
+  for (const [key, agg] of aggs) {
+    const w = wdArtists.get(key);
+    if (!w) continue;
+    if (w.gender && w.kind !== 'group' && w.kind !== 'duo') bump(agg.gender, w.gender, 3);
+    else if (w.gender) bump(agg.gender, w.gender, 2);
+    if (w.kind) bump(agg.structure, w.kind === 'person' ? 'solo' : w.kind, 3);
+    for (const code of w.countries) bump(agg.countries, code, 3 / w.countries.length);
   }
   for (const agg of aggs.values()) {
     if (!agg.genres.size) continue;
@@ -492,6 +522,7 @@ function deriveFacts(rec: SongRec, year: number, artists: Map<string, ArtistAgg>
   if (curated?.size) genreSources.push({ labels: curated, weight: 1 });
   if (playlistSig.labels.size) genreSources.push({ labels: playlistSig.labels, weight: 0.7 });
   if (artistSig.labels.size) genreSources.push({ labels: artistSig.labels, weight: rec.artistGenres.length ? 0.8 : 0.5 });
+  if (rec.wd?.genres.length) genreSources.push({ labels: analyzeGenres(rec.wd.genres).labels, weight: 0.9 });
   const genres = new Map<string, number>();
   const totalWeight = genreSources.reduce((s, g) => s + g.weight, 0);
   for (const label of new Set(genreSources.flatMap((g) => [...g.labels.keys()]))) {
@@ -565,8 +596,12 @@ function deriveFacts(rec: SongRec, year: number, artists: Map<string, ArtistAgg>
   if (FILM_ALBUM.test(albums) && !TV_ALBUM.test(albums)) film = Math.max(film ?? 0, 0.85);
   else if (fromWork) film = Math.max(film ?? 0, 0.75);
   else if (artistSig.soundtrack) film = Math.max(film ?? 0, 0.6);
+  const wdMedia = rec.wd?.work?.media ?? null;
+  if (wdMedia === 'film') film = Math.max(film ?? 0, 0.92);
   if (film !== undefined) set('media:film', film);
+  if (wdMedia === 'game') set('media:game', 0.92);
   let tv = n ? (n.tv === 'written' ? 0.95 : n.tv === 'featured' ? 0.75 : 0.03) : undefined;
+  if (wdMedia === 'tv') tv = Math.max(tv ?? 0, 0.92);
   if (TV_ALBUM.test(albums) || artistSig.tv) tv = Math.max(tv ?? 0, 0.88);
   if (tv !== undefined) set('media:tv', tv);
   let stage = n ? (n.stage === 'written' ? 0.95 : n.stage === 'featured' ? 0.75 : 0.03) : undefined;
@@ -732,6 +767,12 @@ function deriveLanguage(
       if (tl.es > 0 || artistSig.language.es > 0) es += 0.8;
       else other += 0.8;
     }
+  }
+  // Wikidata indica el idioma de la obra (P407): es la señal más directa
+  for (const l of rec.wd?.languages ?? []) {
+    if (l === 'en') en += 6;
+    else if (l === 'es') es += 6;
+    else other += 6;
   }
   if (rec.ev) {
     const code = countryCode(rec.ev.country);

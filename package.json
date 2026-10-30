@@ -21,7 +21,8 @@
     "bench": "tsx packages/engine/bench/run.ts",
     "test": "vitest run",
     "typecheck": "tsc -p packages/engine && tsc -p packages/pipeline && tsc -p apps/server && tsc -p apps/web",
-    "dev:server": "node --disable-warning=ExperimentalWarning --import tsx --watch apps/server/src/index.ts"
+    "dev:server": "node --disable-warning=ExperimentalWarning --import tsx --watch apps/server/src/index.ts",
+    "e2e": "tsx scripts/e2e.ts"
   },
   "devDependencies": {
     "@types/node": "^22.19.0",

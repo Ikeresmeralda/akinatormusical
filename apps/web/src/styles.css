@@ -1718,7 +1718,7 @@ a {
     text-align: center;
   }
 
-  .songcard__links {
+  .songcard .songcard__links {
     justify-content: center;
   }
 

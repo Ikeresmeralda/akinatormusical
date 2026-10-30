@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-10-30T11:01:49.670Z",
+  "builtAt": "2026-10-30T11:54:04.447Z",
   "songs": 54079,
   "artists": 18207,
   "unmatchedNumberOnes": 6,
@@ -9,7 +9,8 @@
     "spotifyPlaylists": 23607,
     "spotifyId": 44249,
     "numberOnes": 1177,
-    "eurovision": 1684
+    "eurovision": 1684,
+    "wikidata": 0
   },
   "familyCoverage": {
     "collab": 100,

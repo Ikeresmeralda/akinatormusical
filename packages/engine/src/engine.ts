@@ -537,6 +537,7 @@ export class Engine {
       url: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${s.title} ${artists[0] ?? s.credit}`)}`,
     });
     if (s.sources.bb) links.push({ label: 'Billboard', url: `https://www.billboard.com/charts/hot-100/${s.sources.bb[2]}/` });
+    if (s.sources.wd) links.push({ label: 'Wikidata', url: `https://www.wikidata.org/wiki/${s.sources.wd}` });
     return {
       id: s.id,
       title: s.title,
@@ -673,6 +674,7 @@ export function describeSources(s: CompiledCatalog['songs'][number]['sources']):
     const country = COUNTRY_BY_CODE.get(code)?.name ?? code;
     out.push(`Eurovisión ${year} · ${country} · ${winner ? 'ganadora' : rank !== null ? `puesto ${rank} en la final` : 'no llegó a la final'}`);
   }
+  if (s.wd) out.push(`Wikidata (${s.wd}): fecha, intérprete, idioma y géneros`);
   if (s.pl) out.push('Playlists de Spotify por género (TidyTuesday 2020)');
   else if (s.sp) out.push('Rasgos de audio de Spotify (TidyTuesday 2021)');
   return out;

@@ -182,8 +182,9 @@ responder que preguntar el idioma).
 
 ### 3.1 Prior: qué canción es más probable antes de preguntar
 
-`π₀(s) ∝ (popularidad(s) + 0,05)²` en modo normal: la gente piensa más en éxitos. En modo difícil el prior es
-casi plano y el catálogo incluye canciones menos conocidas.
+`π₀(s) ∝ (popularidad(s) + 0,05)³` en modo normal: la gente piensa sobre todo en grandes éxitos, y un número 1 es
+unas 13 veces más probable que un éxito menor. En modo difícil el prior es casi plano
+(`(popularidad + 0,25)^0,7`) y el catálogo incluye canciones poco conocidas.
 
 ### 3.2 Modelo de respuesta (por qué no hay eliminación brusca)
 
@@ -227,21 +228,34 @@ candidatas, con una multiplicación y dos lecturas de tabla. Las propiedades que
 - **Las preguntas inútiles valen 0**: si todas las candidatas responderían lo mismo, `IG = 0`.
 - **Datos desconocidos**: una pregunta sin cobertura entre las candidatas apenas aporta y no se hace.
 
-**Preguntas dinámicas.** Además del catálogo fijo (~110 preguntas), el motor genera en cada turno preguntas
-«¿La canta {artista}?» para los artistas con más masa de probabilidad, y calcula su ganancia de forma
-analítica.
+**Preguntas dinámicas.** Además del catálogo fijo (135 preguntas), el motor genera en cada turno:
+
+- «¿Es una canción de {artista}?» para los artistas que concentran más probabilidad. Por encima del 10 % de la
+  masa, o del 4 % a partir de la pregunta 12, para no preguntar nombres al azar.
+- «¿El título contiene la palabra {X}?» con las palabras significativas de los títulos candidatos que mejor los
+  dividen, a partir de la pregunta 6. El jugador conoce el título de su canción, así que es la herramienta de
+  detective para separar las últimas sospechosas.
+
+**Datos ausentes.** Cuando una canción no tiene un dato (p. ej. el género de la voz), no se usa una tasa global,
+sino la observada en canciones parecidas (mismo macrogénero y década) encogida hacia la global. Una canción de hip
+hop de los 2000 sin dato de voz parte de «probablemente voz masculina». Es una probabilidad interna, nunca se
+muestra como un hecho.
 
 ### 3.5 Política de intento
 
 El motor propone una canción cuando se cumple alguna de estas condiciones:
 
 - La confianza (posterior de la mejor canción) es ≥ 85 %.
-- La confianza es ≥ 60 % y hay una ventaja de 8× sobre la segunda.
-- Ninguna pregunta aporta más de 0,02 bits.
-- Se alcanzan los límites de preguntas del modo.
+- La confianza es ≥ 55 % y hay una ventaja de 8× sobre la segunda.
+- Ninguna pregunta aporta más de 0,03 bits.
+- Se llega a la pregunta 30 con una favorita por encima del 30 %. Después vuelve a comprobarlo cada 8 preguntas.
+- Se alcanza el límite del modo: 60 preguntas y 6 intentos en Clásico; 20 preguntas y 3 intentos en Reto 20, donde
+  los umbrales bajan a 60 % y 40 % con ventaja de 4×.
 
-Si falla, esa canción se descarta (`w = 0`) y el juego **sigue preguntando**. La confianza que se muestra es el
-posterior real del intento; su calibración se mide en el benchmark.
+Si falla, esa canción se descarta (`w = 0`) y el juego **sigue preguntando**. **Tras dos fallos**, el posterior se
+recalcula con un modelo de respuesta más tolerante (`P(no | sí) = 6 %` en vez de 1 %). Dos fallos suelen indicar
+que alguna respuesta contradice los datos de la canción correcta, y así esta puede volver a la cabeza. La confianza
+que se muestra es el posterior real del intento; su calibración se mide en el benchmark.
 
 ### 3.6 Aprendizaje
 
@@ -265,9 +279,14 @@ posterior real del intento; su calibración se mide en el benchmark.
    - En las preguntas de época se mantiene el intervalo de años factible y se descartan las que ya están
      resueltas.
 4. **Respuesta casi segura**: si `P(sí) > 0,985` o `< 0,015` entre las candidatas, la pregunta se descarta.
-5. **Variedad**: una pregunta de la misma familia que la anterior se penaliza ×0,8 (×0,6 si son 2 de las 3
+5. **Variedad**: una pregunta de la misma familia que la anterior se penaliza ×0,75 (×0,55 si son 2 de las 3
    últimas). Así se evita el «interrogatorio de géneros» cuando hay alternativas casi igual de buenas.
 6. **Respondibilidad aprendida**: las preguntas que la gente suele contestar con «No lo sé» bajan de prioridad.
+7. **Sentido común con las dudas**: si el jugador responde «No lo sé» a una pregunta de una familia (p. ej. la
+   época), las demás de esa familia se penalizan ×0,6 por cada duda. Si no sabe la época, probablemente tampoco
+   sepa la década.
+8. **Variedad entre partidas**: entre preguntas casi igual de buenas (±4 %) se elige una con la semilla de la
+   partida, de forma reproducible. No todas las partidas empiezan igual y la eficiencia no cambia.
 
 ---
 
@@ -275,7 +294,7 @@ posterior real del intento; su calibración se mide en el benchmark.
 
 | Tamaño del catálogo | Memoria de la matriz (uint8) | Coste por turno | Estrategia |
 |---|---|---|---|
-| 60 k canciones (actual) | ~7 MB | < 15 ms | Matriz densa canción × pregunta |
+| 54 k canciones (actual) | ~7 MB | ~22 ms el primer turno (catálogo completo), ~15 ms de media | Matriz densa canción × pregunta. El bucle de ganancia de información es monomórfico y usa tablas locales |
 | 500 k canciones | ~60 MB | ~30-60 ms | Matriz densa + **conjunto activo** (las canciones que suman el 99,9 % de la masa, con un máximo de 30 k) para elegir pregunta |
 | Millones | Columnas compactas por atributo (ids de idioma, país y género + bitsets) y `p` calculado al vuelo | ~50-100 ms | Workers, réplicas sin estado y caché de los primeros turnos (el primer turno siempre es igual) |
 
@@ -306,13 +325,30 @@ posterior real del intento; su calibración se mide en el benchmark.
 
 ---
 
-## 7. Fases de desarrollo
+## 7. Fases de desarrollo y estado real
 
-| Fase | Contenido |
-|---|---|
-| 1. Datos | Pipeline reproducible, catálogo semilla verificable e informe de cobertura |
-| 2. Motor | Inferencia, ganancia de información, política de intento, anti-repetición, aprendizaje, simulador y tests |
-| 3. Servidor | API sin estado, SQLite, búsqueda en catálogo, estadísticas globales y aprendizaje en caliente |
-| 4. Interfaz | Tarjetas animadas, botones de respuesta, contador, animación de intento, victoria y derrota con «enséñame», responsive |
-| 5. Extras | Modo difícil, modo Reto, estadísticas personales y preguntas de aprendizaje |
-| 6. Siguiente | Ejecutar el conector de Wikidata con red, carátulas y previews de Deezer, señal TikTok vía Wikipedia, PostgreSQL si hay mucho tráfico |
+| Fase | Contenido | Estado |
+|---|---|---|
+| 1. Datos | Pipeline reproducible (`npm run data:build`), catálogo semilla verificable de 54.079 canciones e informe de cobertura | ✅ Hecho |
+| 2. Motor | Inferencia, ganancia de información, preguntas dinámicas, política de intento, anti-repetición, aprendizaje, simulador y tests | ✅ Hecho y medido ([`BENCHMARK.md`](BENCHMARK.md)) |
+| 3. Servidor | API sin estado, SQLite, búsqueda en catálogo, estadísticas globales, aprendizaje en caliente y limitador de escritura | ✅ Hecho, con tests de API |
+| 4. Interfaz | Tarjetas animadas, botones de respuesta, contador, medidor de candidatas, animación de intento, victoria y derrota con «enséñame», responsive | ✅ Hecho y probado con Playwright en escritorio y móvil |
+| 5. Extras | Modo difícil, Reto 20 con marcador y puntos, estadísticas personales y globales, preguntas de aprendizaje | ✅ Hecho |
+| 6. Wikidata | Conector SPARQL e integración en el pipeline (canciones en español, voz, país, tipo de artista, cine, series y videojuegos) | ⚠️ Implementado y probado con respuestas de ejemplo. **No ejecutado contra el servicio real** por la política de red del entorno |
+| 7. Siguiente | Ejecutar Wikidata, carátulas y previews de Deezer o iTunes, señal de TikTok vía Wikipedia, PostgreSQL si hay mucho tráfico, calibrar el modelo de respuesta con partidas reales | Pendiente |
+
+### Cobertura de datos del catálogo semilla
+
+Porcentaje de canciones con dato de origen ([`data/catalog/coverage.json`](../data/catalog/coverage.json)):
+
+| Atributo | Cobertura | Comentario |
+|---|---|---|
+| Año, idioma, título, colaboración, listas, Navidad | 100 % | El idioma es una distribución de probabilidad derivada |
+| Géneros | 88 % | Géneros de Spotify, playlists y anotaciones |
+| Rasgos de audio (tempo, energía, bailabilidad, valencia…) | 82 % | Spotify (datasets abiertos) |
+| País del artista | 50 % | Curado en los números 1 y deducido de etiquetas de nacionalidad de Spotify |
+| Contenido explícito | 45 % | Etiqueta de Spotify |
+| Voz (mujer, hombre, mixta, instrumental) | 32 % | Propagada por artista desde fuentes curadas. Es el mayor hueco y Wikidata lo cubriría |
+| Tipo de artista (solista, dúo, grupo) | 27 % | Ídem |
+| Cine, series y musicales | 4 % | Más los datos que Wikidata aporte |
+| Temática de la letra e instrumentos | 2 % | Solo los números 1 anotados |
