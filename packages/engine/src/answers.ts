@@ -67,6 +67,23 @@ for (let c = 0; c < CODE_LEVELS; c++) {
   }
 }
 
+/**
+ * Modelo tolerante: asume que el jugador se equivoca más a menudo. Se usa
+ * cuando ya han fallado varios intentos, señal de que alguna respuesta
+ * contradice los datos de la canción correcta: así puede volver a la lista.
+ */
+export const TOLERANT_GIVEN_TRUE = [0.68, 0.16, 0.05, 0.05, 0.06] as const;
+export const TOLERANT_GIVEN_FALSE = [0.06, 0.05, 0.05, 0.16, 0.68] as const;
+
+export const TOLERANT_LOG_LIKELIHOOD: Float64Array[] = [0, 1, 2, 3, 4].map((a) => {
+  const t = new Float64Array(CODE_LEVELS);
+  for (let c = 0; c < CODE_LEVELS; c++) {
+    const p = fromCode(c);
+    t[c] = Math.log(p * TOLERANT_GIVEN_TRUE[a] + (1 - p) * TOLERANT_GIVEN_FALSE[a]);
+  }
+  return t;
+});
+
 export function answerLikelihood(answer: Answer, p: number): number {
   return likelihood(ANSWER_INDEX[answer], p);
 }

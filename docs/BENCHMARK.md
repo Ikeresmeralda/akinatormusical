@@ -2,7 +2,7 @@
 
 Generado con `npm run bench` el 2026-10-30 sobre el catálogo semilla
 (54.079 canciones; modo normal y Reto 20: 21.820).
-Compilación del catálogo en memoria: 1.6 s.
+Compilación del catálogo en memoria: 2.1 s.
 
 ## Qué mide
 
@@ -25,12 +25,12 @@ elige la siguiente pregunta, así que la diferencia mide el valor de elegir por 
 
 | Escenario | Partidas | Acierto | Acierto en ≤ 20 preguntas | Media de preguntas (aciertos) | Mediana | P90 | Intentos por acierto | ms por turno |
 |---|---|---|---|---|---|---|---|---|
-| Normal · ganancia de información | 100 | 68.0 % | 14.0 % | 31.0 | 28 | 51 | 1.46 | 16.2 |
-| Normal · preguntas al azar | 50 | 20.0 % | 0.0 % | 58.5 | 60 | 60 | 2.50 | 2.2 |
-| Normal · cuestionario fijo | 50 | 32.0 % | 0.0 % | 60.0 | 60 | 60 | 3.25 | 2.2 |
-| Normal · jugador muy despistado | 50 | 42.0 % | 2.0 % | 37.5 | 34 | 54 | 1.95 | 17.7 |
-| Difícil · ganancia de información | 50 | 40.0 % | 6.0 % | 34.1 | 32 | 54 | 1.80 | 38.0 |
-| Reto 20 · ganancia de información | 50 | 26.0 % | 26.0 % | 18.8 | 20 | 20 | 1.31 | 15.4 |
+| Normal · ganancia de información | 300 | 73.3 % | 12.3 % | 33.1 | 31 | 57 | 1.60 | 14.3 |
+| Normal · preguntas al azar | 150 | 22.0 % | 0.0 % | 58.3 | 60 | 60 | 2.58 | 2.1 |
+| Normal · cuestionario fijo | 150 | 22.0 % | 0.0 % | 60.0 | 60 | 60 | 2.70 | 2.1 |
+| Normal · jugador muy despistado | 150 | 42.0 % | 5.3 % | 38.6 | 40 | 58 | 1.92 | 16.8 |
+| Difícil · ganancia de información | 150 | 52.7 % | 4.0 % | 36.4 | 34 | 58 | 1.62 | 32.3 |
+| Reto 20 · ganancia de información | 150 | 28.0 % | 28.0 % | 18.7 | 20 | 20 | 1.50 | 14.8 |
 
 ## Calibración de la confianza
 
@@ -40,7 +40,7 @@ información de la tabla anterior:
 
 | Confianza declarada | Intentos | Aciertos reales |
 |---|---|---|
-| 0–30 % | 669 | 2.5 % |
-| 30–60 % | 81 | 33.3 % |
-| 60–85 % | 82 | 57.3 % |
-| 85–100 % | 48 | 64.6 % |
+| 0–30 % | 1743 | 3.1 % |
+| 30–60 % | 247 | 30.4 % |
+| 60–85 % | 334 | 48.2 % |
+| 85–100 % | 163 | 69.9 % |

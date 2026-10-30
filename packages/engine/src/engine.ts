@@ -5,6 +5,7 @@ import {
   LEARNING_WEIGHT,
   LOG_LIKELIHOOD,
   P_BY_CODE,
+  TOLERANT_LOG_LIKELIHOOD,
   answerEntropy,
   answerLikelihood,
   fromCode,
@@ -105,6 +106,9 @@ const WORD_QUESTION_WEIGHT = 0.85;
 /** Copias locales de las tablas: leer un binding importado dentro del bucle caliente es ~15× más lento. */
 const P_TABLE = Float64Array.from(P_BY_CODE);
 const LOG_TABLES = LOG_LIKELIHOOD.map((t) => Float64Array.from(t));
+const TOLERANT_LOG_TABLES = TOLERANT_LOG_LIKELIHOOD.map((t) => Float64Array.from(t));
+/** Tras este número de intentos fallidos se recalcula con el modelo de respuesta tolerante. */
+const TOLERANT_AFTER_GUESSES = 2;
 const H_TABLE = Float64Array.from(ENTROPY_BY_CODE);
 
 /** Bucle caliente (monomórfico): m = Σ w·p y H(A|s) esperada = Σ w·h(p). */
@@ -241,9 +245,10 @@ export class Engine {
     const pool = prior.pool;
     const n = pool.length;
     const logw = Float64Array.from(prior.logPrior);
+    const tables = input.guesses.length >= TOLERANT_AFTER_GUESSES ? TOLERANT_LOG_TABLES : LOG_TABLES;
     for (const ans of input.answers) {
       const r = this.resolve(ans.q);
-      const table = LOG_TABLES[ANSWER_INDEX[ans.a]];
+      const table = tables[ANSWER_INDEX[ans.a]];
       if (!r || !table) continue;
       if (r.kind === 'static') {
         const codes = r.q.codes;
@@ -479,7 +484,10 @@ export class Engine {
 
   /** Estrategia de elección de pregunta (las líneas base del benchmark la sustituyen). */
   protected selectQuestion(input: GameInput, posterior: Posterior): ScoredQuestion | undefined {
-    return this.rankQuestions(input, posterior, 1)[0];
+    if (input.seed === undefined) return this.rankQuestions(input, posterior, 1)[0];
+    const ranked = this.rankQuestions(input, posterior, 4);
+    const near = ranked.filter((r) => r.score >= ranked[0].score * NEAR_TIE);
+    return near[mix(input.seed, input.answers.length) % near.length];
   }
 
   private makeGuess(input: GameInput, posterior: Posterior, top: number, progress: Progress): Decision {
@@ -631,6 +639,16 @@ export class Engine {
     }
     return out;
   }
+}
+
+/** Margen para considerar dos preguntas "casi igual de buenas". */
+const NEAR_TIE = 0.96;
+
+/** Hash entero reproducible de (semilla, turno). */
+function mix(seed: number, turn: number): number {
+  let h = (Math.imul(seed | 0, 0x9e3779b1) ^ Math.imul(turn + 1, 0x85ebca6b)) >>> 0;
+  h = Math.imul(h ^ (h >>> 16), 0x7feb352d) >>> 0;
+  return (h ^ (h >>> 15)) >>> 0;
 }
 
 /** ¿La respuesta a una pregunta de época ya está determinada por el intervalo factible? */

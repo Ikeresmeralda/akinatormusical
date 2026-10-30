@@ -58,6 +58,11 @@ export interface GameInput {
   mode: Mode;
   answers: AnswerRecord[];
   guesses: GuessRecord[];
+  /**
+   * Semilla de la partida: entre preguntas casi igual de buenas (±4 %) elige
+   * una de forma reproducible, para que no todas las partidas empiecen igual.
+   */
+  seed?: number;
 }
 
 export interface PublicQuestion {
