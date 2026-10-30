@@ -22,6 +22,8 @@ export interface AppOptions {
   /** Carpeta con la SPA compilada (apps/web/dist); si no existe, solo se sirve la API. */
   staticDir?: string;
   logger?: boolean;
+  /** Detrás de un proxy inverso: usar X-Forwarded-For para la IP del limitador. */
+  trustProxy?: boolean;
 }
 
 const MAX_ANSWERS = 90;
@@ -93,7 +95,7 @@ export async function buildApp(options: AppOptions): Promise<{ app: FastifyInsta
   for (const row of store.allCounts()) if (engine.applyLearning(row.songId, row.questionId, row.counts)) learned++;
   for (const q of store.questionStats()) engine.setUnknownStats(q.questionId, q.asked, q.unknown);
 
-  const app = Fastify({ logger: options.logger ?? false, bodyLimit: 64 * 1024 });
+  const app = Fastify({ logger: options.logger ?? false, bodyLimit: 64 * 1024, trustProxy: options.trustProxy ?? false });
   app.log.info(
     `Catálogo: ${engine.catalog.songs.length} canciones, ${learned} celdas aprendidas, listo en ${Math.round(performance.now() - t0)} ms`,
   );

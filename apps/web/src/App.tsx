@@ -1,4 +1,5 @@
 import { AnimatePresence } from 'motion/react';
+import { useEffect } from 'react';
 import { About } from './components/About';
 import { Defeat, Victory } from './components/EndScreens';
 import { Game } from './components/Game';
@@ -12,6 +13,11 @@ export function App() {
   const { state } = game;
   const again = () => game.start(state.mode);
   const home = () => game.go('home');
+
+  // Cada pantalla empieza arriba (si no, se hereda el desplazamiento de la anterior)
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [state.screen]);
 
   return (
     <div className="app">

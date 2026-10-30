@@ -8,6 +8,7 @@ const { app } = await buildApp({
   dbPath: process.env.DB_PATH ?? `${root}data/state/akinator.sqlite`,
   staticDir: process.env.STATIC_DIR ?? `${root}apps/web/dist`,
   logger: true,
+  trustProxy: process.env.TRUST_PROXY === '1',
 });
 
 const port = Number(process.env.PORT ?? 3001);

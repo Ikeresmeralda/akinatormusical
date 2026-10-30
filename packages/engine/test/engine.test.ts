@@ -154,6 +154,20 @@ describe('decisión', () => {
     if (next.type === 'guess') expect(next.song.id).not.toBe('s5');
   });
 
+  it('con semilla de partida, una partida completa termina en intento o rendición', () => {
+    const e = engine();
+    const answers: AnswerRecord[] = [];
+    const guesses: Array<{ id: string; at: number }> = [];
+    let finished = false;
+    for (let turn = 0; turn < 400 && !finished; turn++) {
+      const d = e.step({ mode: 'hard', answers, guesses, seed: 12345 });
+      if (d.type === 'question') answers.push({ q: d.question.id, a: 'unknown' });
+      else if (d.type === 'guess') guesses.push({ id: d.song.id, at: answers.length });
+      else finished = true;
+    }
+    expect(finished).toBe(true);
+  });
+
   it('se rinde al agotar los intentos', () => {
     const e = engine();
     const guesses = ['s1', 's2', 's3', 's4', 's5', 's6', 's7'].map((id) => ({ id, at: 0 }));

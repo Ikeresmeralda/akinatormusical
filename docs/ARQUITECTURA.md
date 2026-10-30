@@ -200,9 +200,10 @@ confusión:
 `P(respuesta | s) = p·fila_sí + (1 − p)·fila_no`. Consecuencias:
 
 - **«No lo sé»** tiene la misma probabilidad en ambas filas, así que no altera el posterior.
-- Un **«Sí»** rotundo multiplica por unas 18 las canciones compatibles frente a las incompatibles, pero no las
-  pone a cero. Si el jugador se equivoca, la canción correcta se recupera con las respuestas siguientes.
-- **«Probablemente sí»** desplaza las probabilidades con menos fuerza (factor de unas 7).
+- Un **«Sí»** rotundo multiplica las canciones compatibles entre 10 y 30 veces frente a las incompatibles, según
+  lo seguro que sea el dato, pero no las pone a cero. Si el jugador se equivoca, la canción correcta se recupera
+  con las respuestas siguientes.
+- **«Probablemente sí»** desplaza las probabilidades con menos fuerza (factor de unas 5).
 
 ### 3.3 Actualización bayesiana
 

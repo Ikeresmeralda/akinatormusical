@@ -486,6 +486,7 @@ export class Engine {
   protected selectQuestion(input: GameInput, posterior: Posterior): ScoredQuestion | undefined {
     if (input.seed === undefined) return this.rankQuestions(input, posterior, 1)[0];
     const ranked = this.rankQuestions(input, posterior, 4);
+    if (!ranked.length) return undefined;
     const near = ranked.filter((r) => r.score >= ranked[0].score * NEAR_TIE);
     return near[mix(input.seed, input.answers.length) % near.length];
   }

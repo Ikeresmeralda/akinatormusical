@@ -86,7 +86,8 @@ Otras órdenes:
 | `npm run data:wikidata` | Descarga canciones e intérpretes de Wikidata (requiere acceso a `query.wikidata.org`) |
 
 Variables de entorno del servidor: `PORT` (3001), `HOST` (0.0.0.0), `DB_PATH` (`data/state/akinator.sqlite`),
-`CATALOG_PATH` y `STATIC_DIR`.
+`CATALOG_PATH`, `STATIC_DIR` y `TRUST_PROXY=1`. Esta última hace falta detrás de un proxy inverso, para que el
+limitador de escrituras vea la IP real.
 
 ## Arquitectura
 
