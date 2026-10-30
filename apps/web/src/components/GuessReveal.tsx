@@ -56,6 +56,19 @@ export function GuessReveal({
     return () => clearTimeout(t);
   }, [song.id, reduced]);
 
+  // Atajos coherentes con los de las preguntas: 1/S = sí, 5/N = no
+  useEffect(() => {
+    if (!revealed) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || pending) return;
+      const key = e.key.toLowerCase();
+      if (key === '1' || key === 's') onConfirm(true);
+      else if (key === '5' || key === 'n') onConfirm(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [revealed, pending, onConfirm]);
+
   return (
     <motion.main className="screen guess" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <div className="spotlight" aria-hidden="true" />
@@ -115,10 +128,10 @@ export function GuessReveal({
             )}
 
             <div className="reveal__actions">
-              <button type="button" className="btn btn--yes btn--xl" disabled={pending} onClick={() => onConfirm(true)}>
+              <button type="button" className="btn btn--yes btn--xl" disabled={pending} onClick={() => onConfirm(true)} aria-keyshortcuts="1 S">
                 ¡Sí, es esa!
               </button>
-              <button type="button" className="btn btn--no btn--xl" disabled={pending} onClick={() => onConfirm(false)}>
+              <button type="button" className="btn btn--no btn--xl" disabled={pending} onClick={() => onConfirm(false)} aria-keyshortcuts="5 N">
                 No, no es esa
               </button>
             </div>

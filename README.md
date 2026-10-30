@@ -47,7 +47,8 @@ canciones**: solo propone canciones de un catálogo construido con fuentes verif
 - **Estadísticas**: personales (en el navegador) y globales (servidor). Incluyen el histograma de preguntas
   necesarias, el récord, el marcador del reto y las canciones más pensadas.
 - **Interfaz**: tarjetas animadas, mascota original, redoble y revelación con anillo de confianza, confeti y atajos
-  de teclado (`1`–`5` y `←` para corregir). Está adaptada a móvil y respeta `prefers-reduced-motion`.
+  de teclado (`1`–`5` para responder, retroceso para corregir, `S`/`N` en los intentos). Está adaptada a móvil y
+  respeta `prefers-reduced-motion`.
 
 ## Puesta en marcha
 
