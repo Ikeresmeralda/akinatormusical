@@ -160,7 +160,24 @@ El benchmark (`npm run bench`) enfrenta el motor a jugadores simulados que dudan
 misma inferencia usando preguntas al azar y un cuestionario fijo. Resultados completos y calibración de la confianza
 en [`docs/BENCHMARK.md`](docs/BENCHMARK.md).
 
-<!-- RESULTADOS -->
+| Escenario (jugador simulado que duda y se equivoca un 4 %) | Acierto | Preguntas (mediana, aciertos) | Intentos por acierto |
+|---|---|---|---|
+| **Modo normal: ganancia de información** | **72,7 %** | 29 | 1,43 |
+| Misma inferencia, preguntas al azar | 21,3 % | 60 | 2,56 |
+| Misma inferencia, cuestionario fijo | 23,3 % | 60 | 2,80 |
+| Jugador muy despistado (12 % de errores) | 34,7 % | 33 | 1,83 |
+| Modo difícil (54.079 canciones, prior plano) | 42,0 % | 32 | 1,60 |
+| Reto 20 (20 preguntas y 3 intentos) | 27,3 % | 20 | 1,46 |
+
+- La estrategia de preguntas es lo que marca la diferencia: con la misma inferencia y el mismo catálogo, elegir
+  por ganancia de información acierta **3 veces más** que preguntar al azar o seguir un cuestionario fijo, y con
+  la mitad de preguntas.
+- El porcentaje de confianza mostrado está calibrado: en modo normal, los intentos anunciados al 85-100 % aciertan
+  el 88 %.
+- Rendimiento: unos 16 ms por turno en modo normal y 40 ms con el catálogo completo, en una sola CPU.
+- El catálogo semilla limita: muchas canciones apenas tienen datos de voz, país o temática, y el motor no puede
+  distinguir lo que no conoce. Por eso las partidas son algo largas (mediana de 29 preguntas). Más datos (Wikidata)
+  y el aprendizaje con partidas reales son la palanca principal.
 
 ## Limitaciones conocidas
 

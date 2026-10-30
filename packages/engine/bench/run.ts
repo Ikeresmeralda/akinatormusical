@@ -169,7 +169,14 @@ ${summaries.map((s) => `| ${row(s)} |`).join('\n')}
 
 El porcentaje que muestra la app en cada intento es el posterior de la canción propuesta, calibrado con un
 escalado de Platt (\`CONFIDENCE_CALIBRATION\` en \`engine.ts\`). Si está bien calibrado, los intentos al 90 %
-aciertan cerca del 90 % de las veces. Datos de las partidas con ganancia de información de la tabla anterior:
+aciertan cerca del 90 % de las veces.
+
+**Modo normal, jugador estándar:**
+
+${calibration(summaries.slice(0, 1))}
+
+**Todos los escenarios con ganancia de información** (incluye al jugador que se equivoca un 12 % y el modo difícil,
+donde la misma confianza acierta menos):
 
 ${calibration(summaries.filter((s) => s.scenario.engine === engine))}
 `;

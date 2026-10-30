@@ -257,8 +257,9 @@ Si falla, esa canción se descarta (`w = 0`) y el juego **sigue preguntando**. *
 recalcula con un modelo de respuesta más tolerante (`P(no | sí) = 6 %` en vez de 1 %). Dos fallos suelen indicar
 que alguna respuesta contradice los datos de la canción correcta, y así esta puede volver a la cabeza. La confianza
 que se muestra es el posterior **calibrado** con un escalado de Platt (`σ(0,82·logit(p) − 0,31)`) ajustado por
-regresión logística con 400 partidas simuladas y validado con otras 150. En el benchmark, los intentos anunciados
-al 85-100 % aciertan en esa proporción. Las decisiones internas usan el posterior sin calibrar.
+regresión logística con 400 partidas simuladas y validado con otras 150. En el benchmark de modo normal, los
+intentos anunciados al 85-100 % aciertan el 88 %, y los anunciados al 60-85 %, el 73 %. Las decisiones internas
+usan el posterior sin calibrar.
 
 ### 3.6 Aprendizaje
 
